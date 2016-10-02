@@ -6,7 +6,7 @@
 #include "person.hpp"
 
 #define RUNS 100
-#define POP_SIZE 100
+#define POP_SIZE 10
 #define PLANTS 100
 #define SELECTION_SIZE (POP_SIZE/2)
 
@@ -17,9 +17,9 @@ int main()
 	Evaluation::EVALUATION_SIZE = 4;
 	Evaluation::STATUS_SIZE = 1;
 	Evaluation::ACTION_SIZE = 2;
-	Person::EXCHANGE_ENERGY_COST = 1;
-	Person::POISONOUS_FOOD_ENERGY_COST = 20;
-	Person::GOOD_FOOD_ENERGY_GAIN = 10;
+	Person::EXCHANGE_ENERGY_COST = 0;
+	Person::POISONOUS_FOOD_ENERGY_COST = 1;
+	Person::GOOD_FOOD_ENERGY_GAIN = 1;
 	
 	Food my_food[PLANTS];
 	for(int i = 0; i < PLANTS; i++)
@@ -32,7 +32,7 @@ int main()
 	Person* person[POP_SIZE];
 	for(int i = 0; i < POP_SIZE; i++)
 		person[i] = new Person();
-
+	
 	while(true)
 	{
 		for(int	i = 0; i < PLANTS; i++)
@@ -51,7 +51,7 @@ int main()
 				int j = rand()%POP_SIZE;
 				while(hs[j])
 					j = rand()%POP_SIZE;
-				person[i]->meet(*person[j]);
+//				person[i]->meet(*person[j]);
 				hs[j] = true;
 			}
 		}
@@ -66,18 +66,19 @@ int main()
 				}
 
 		int average = 0;
-		int behavior[2*Evaluation::EVALUATION_SIZE];
-		for(int i = 0; i < 2*Evaluation::EVALUATION_SIZE; i++)
+		int behavior[Evaluation::STATUS_SIZE*Evaluation::EVALUATION_SIZE];
+		for(int i = 0; i < Evaluation::STATUS_SIZE*Evaluation::EVALUATION_SIZE; i++)
 			behavior[i] = 0;
 		for(int i = 0; i < POP_SIZE; i++)
 		{
 			average += person[i]->getEnergy();	
-			for(int j = 0; j < 2*Evaluation::EVALUATION_SIZE; j++)
-				behavior[j] += person[i]->getBehavior()[j];
+			for(int j = 0; j < Evaluation::STATUS_SIZE*Evaluation::EVALUATION_SIZE; j++)
+				behavior[j] += person[0]->getBehavior()[j];
 		}
 		printf("Average: %4i [best: %4i] {", average / POP_SIZE, person[0]->getEnergy());
 		for(int j = 0; j < Evaluation::STATUS_SIZE; j++)
 		{
+			printf(" ");
 			for(int i = 0; i < Evaluation::EVALUATION_SIZE; i++)
 				printf("%i", behavior[i + j*Evaluation::EVALUATION_SIZE]>SELECTION_SIZE?1:0);
 			printf(" ");
@@ -104,3 +105,7 @@ int main()
     
     return EXIT_SUCCESS;
 }
+
+
+// handeln - Beduerfnisse, 'Rucksack', gezieltes Sammeln?, Preis
+// Beduerfnis, Angebot

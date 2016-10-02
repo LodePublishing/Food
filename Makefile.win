@@ -5,38 +5,38 @@ CPP  = g++.exe
 CC   = gcc.exe
 WINDRES = windres.exe
 RES  = 
-OBJ  = main.o forest.o person.o food.o evaluation.o $(RES)
-LINKOBJ  = main.o forest.o person.o food.o evaluation.o $(RES)
+OBJ  = ../food2/main.o ../food2/forest.o ../food2/person.o ../food2/food.o ../food2/evaluation.o $(RES)
+LINKOBJ  = ../food2/main.o ../food2/forest.o ../food2/person.o ../food2/food.o ../food2/evaluation.o $(RES)
 LIBS =  -L"C:/Dev-Cpp/lib"  
 INCS =  -I"C:/Dev-Cpp/include" 
 CXXINCS =  -I"C:/Dev-Cpp/lib/gcc/mingw32/3.4.2/include"  -I"C:/Dev-Cpp/include/c++/3.4.2/backward"  -I"C:/Dev-Cpp/include/c++/3.4.2/mingw32"  -I"C:/Dev-Cpp/include/c++/3.4.2"  -I"C:/Dev-Cpp/include" 
-BIN  = food.exe
+BIN  = food2.exe
 CXXFLAGS = $(CXXINCS)  
 CFLAGS = $(INCS)  
 RM = rm -f
 
 .PHONY: all all-before all-after clean clean-custom
 
-all: all-before food.exe all-after
+all: all-before food2.exe all-after
 
 
 clean: clean-custom
 	${RM} $(OBJ) $(BIN)
 
 $(BIN): $(OBJ)
-	$(CPP) $(LINKOBJ) -o "food.exe" $(LIBS)
+	$(CPP) $(LINKOBJ) -o "food2.exe" $(LIBS)
 
-main.o: main.cpp
-	$(CPP) -c main.cpp -o main.o $(CXXFLAGS)
+../food2/main.o: ../food2/main.cpp
+	$(CPP) -c ../food2/main.cpp -o ../food2/main.o $(CXXFLAGS)
 
-forest.o: forest.cpp
-	$(CPP) -c forest.cpp -o forest.o $(CXXFLAGS)
+../food2/forest.o: ../food2/forest.cpp
+	$(CPP) -c ../food2/forest.cpp -o ../food2/forest.o $(CXXFLAGS)
 
-person.o: person.cpp
-	$(CPP) -c person.cpp -o person.o $(CXXFLAGS)
+../food2/person.o: ../food2/person.cpp
+	$(CPP) -c ../food2/person.cpp -o ../food2/person.o $(CXXFLAGS)
 
-food.o: food.cpp
-	$(CPP) -c food.cpp -o food.o $(CXXFLAGS)
+../food2/food.o: ../food2/food.cpp
+	$(CPP) -c ../food2/food.cpp -o ../food2/food.o $(CXXFLAGS)
 
-evaluation.o: evaluation.cpp
-	$(CPP) -c evaluation.cpp -o evaluation.o $(CXXFLAGS)
+../food2/evaluation.o: ../food2/evaluation.cpp
+	$(CPP) -c ../food2/evaluation.cpp -o ../food2/evaluation.o $(CXXFLAGS)
