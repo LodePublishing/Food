@@ -15,24 +15,31 @@ class Evaluation
 		void initThisForThat();
 		void initZero();
 
-		int getBehavior(const int id) const;
+		int getBehavior(const int id, const int status) const;
 
-		void updateEvaluation(int id, int experience);
-		
-		void generateChild(Evaluation* partner, Evaluation* child) const;
+		void updateEvaluation(int id, bool experience);
+		void generateChild(Evaluation* child) const;
 		void mutate();
 		
-//	private:
+		static int EVALUATION_SIZE;
+		static int STATUS_SIZE;
+		static int ACTION_SIZE;
+		int* behavior;
+	private:
+		int evaluationOfExchange(int my_evaluation, int other_evaluation) const;
+		int getEvalNumber(const int id) const;
 
-		std::map<int, int> behavior;
+// Liste von Bewertungen fuer verschiedene IDs
+		std::map<int, int> evaluation;
 
-		int behaviorAdaption; // aufgrund eines positiven oder negativen Ereignisses
+// Funktion die eine Bewertung zusammen mit dem Status auf eine Handlung mappt		
 
-		int exchangeBehaviorAdaption;
 
-		int firstBehavior;
-		int firstBehaviorAdaption;
-		
+// Funktion die eine Bewertung zusammen mit der gerade gemachten Erfahrung auf eine neue Bewertung updated
+		int* evaluationExperience;
+
+// Funktion die Bewertungen des gegenueber zusammen mit der Bewertung des anderen die Eintraege in evaluation updated
+		int* evaluationExchange;
 };
 
 #endif

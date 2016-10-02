@@ -2,93 +2,152 @@
 
 Evaluation::Evaluation()
 {
+	behavior = new int[EVALUATION_SIZE * STATUS_SIZE];
+	evaluationExperience = new int[EVALUATION_SIZE * ACTION_SIZE];
+	evaluationExchange = new int[EVALUATION_SIZE * EVALUATION_SIZE];
+	initThisForThat();
 	initZero();
 }
 
 Evaluation::~Evaluation()
 {
+	delete behavior;
+	delete evaluationExperience;
+	delete evaluationExchange;
 }
 
 void Evaluation::reset()
 {
-	behavior.clear();
+	evaluation.clear();
 }
 
 void Evaluation::initZero()
 {
-		behaviorAdaption = 10;
-		exchangeBehaviorAdaption = 10;
-		firstBehavior = 10;
-		firstBehaviorAdaption = 10;
+
+	for(int i = 0; i < STATUS_SIZE*EVALUATION_SIZE; i++)
+		behavior[i] = 0;
+
+/*	for(int i = 0; i < ACTION_SIZE*EVALUATION_SIZE; i++)
+		evaluationExperience[i] = 0;
+
+	for(int i = 0; i < EVALUATION_SIZE; i++)
+		for(int j = 0; j < EVALUATION_SIZE; j++)
+			evaluationExchange[i + j * EVALUATION_SIZE] = 0;*/
 }
 
 void Evaluation::initThisForThat()
 {
+	// Cooperate in first step if energy is >= 0 or < 0
+	behavior[0] = 1;
+	behavior[EVALUATION_SIZE] = 1;
+	
+	// Don't cooperate with evaluation == 1
+	behavior[1] = 0;
+	behavior[1 + EVALUATION_SIZE] = 0;
+	
+	// Cooperate in other cases
+	for(int i = 2; i < EVALUATION_SIZE; i++)
+	{
+		behavior[i] = 1;
+		behavior[i + EVALUATION_SIZE] = 1;
+	}
+	
+	// Did not cooperate? => Status 1
+	for(int i = 0; i < EVALUATION_SIZE; i++)
+		evaluationExperience[i] = 1;
+	// Did cooperate? => Status 2
+	for(int i = 0; i < EVALUATION_SIZE; i++)
+		evaluationExperience[i + EVALUATION_SIZE] = 2;
+		
+	// don't ignore other people
+	for(int i = 0; i < EVALUATION_SIZE; i++)
+		for(int j = 0; j < EVALUATION_SIZE; j++)
+		{
+			int e = i;
+			if(e == 0)
+				e = j;
+			else if((j == 1) && (e > 1))
+				e--;
+			else if((j >= 2) && (e+1 < EVALUATION_SIZE))
+				e++;
+			evaluationExchange[i + j * EVALUATION_SIZE] = e;
+		}
 }
 
-void Evaluation::generateChild(Evaluation* partner, Evaluation* child) const
+void Evaluation::generateChild(Evaluation* child) const
 {
-	child->behaviorAdaption = (partner->behaviorAdaption + behaviorAdaption) / 2;
-	child->exchangeBehaviorAdaption = (partner->exchangeBehaviorAdaption + exchangeBehaviorAdaption) / 2;
-	child->firstBehavior = (partner->firstBehavior + firstBehavior) / 2;
-	child->firstBehaviorAdaption = (partner->firstBehaviorAdaption + firstBehaviorAdaption) / 2;
-}
-
-void my_mutate(int& value)
-{
-	if(rand()%2 == 0)
-		return;
-	int z = (rand()%100) + (rand()%100) - value;
-	value = (value + z)/2;
+	for(int i = 0; i < STATUS_SIZE * EVALUATION_SIZE; i++)
+		child->behavior[i] = behavior[i];
+	
+	for(int i = 0; i < ACTION_SIZE*EVALUATION_SIZE; i++)
+		child->evaluationExperience[i] = evaluationExperience[i];
+	
+	for(int i = 0; i < EVALUATION_SIZE*EVALUATION_SIZE; i++)
+		child->evaluationExchange[i] = evaluationExchange[i];
 }
 
 void Evaluation::mutate()
 {
-	my_mutate(behaviorAdaption);
-	my_mutate(exchangeBehaviorAdaption);
-	my_mutate(firstBehavior);
-	my_mutate(firstBehaviorAdaption);	
+	for(int i = 0; i < STATUS_SIZE * EVALUATION_SIZE; i++)
+		if(rand()%(STATUS_SIZE * EVALUATION_SIZE) == 0)
+			behavior[i] = rand()%ACTION_SIZE;
+	
+//	for(int i = 0; i < ACTION_SIZE*EVALUATION_SIZE; i++)
+//		if(rand()%(EVALUATION_SIZE) == 0)
+//			evaluationExperience[i] = rand()%EVALUATION_SIZE;
+
+//	for(int i = 0; i < EVALUATION_SIZE*EVALUATION_SIZE; i++)
+//		if(rand()%(EVALUATION_SIZE*EVALUATION_SIZE) == 0)
+//			evaluationExchange[i] = rand()%EVALUATION_SIZE;
 }
 
-int adapt(int value1, int adapt_value, int value2)
-{
-	return (value1 * (100 - adapt_value) + value2 * adapt_value) / 100;
-}
+
 
 // positive oder negative Erfahrung?
-void Evaluation::updateEvaluation(int id, int experience)
+void Evaluation::updateEvaluation(int id, bool experience)
 {
-	std::map<int, int>::const_iterator i = behavior.find(id);
-	if(i == behavior.end())
-	{
-		behavior[id] = 0;
-		firstBehavior = adapt(firstBehavior, firstBehaviorAdaption, experience);
-	}
-	behavior[id] = adapt(behavior[id], behaviorAdaption, experience);
+	int eval_number = getEvalNumber(id);
+	if(experience)
+		eval_number += EVALUATION_SIZE;
+	evaluation[id] = evaluationExperience[eval_number];
 }
 
-int Evaluation::getBehavior(const int id) const
+int Evaluation::getEvalNumber(const int id) const
 {
-	std::map<int, int>::const_iterator i = behavior.find(id);
-	if(i == behavior.end())
-		return firstBehavior;
-	else return i->second;
+	std::map<int, int>::const_iterator i = evaluation.find(id);
+	if(i != evaluation.end())
+		return i->second;
+	else return 0;
+}
+
+int Evaluation::getBehavior(const int id, const int status) const
+{
+	return behavior[getEvalNumber(id) + status * EVALUATION_SIZE];
+}
+
+int Evaluation::evaluationOfExchange(int my_evaluation, int other_evaluation) const
+{
+	return evaluationExchange[my_evaluation + other_evaluation * EVALUATION_SIZE];
 }
 
 void Evaluation::exchangeEvaluation(const Evaluation& other_evaluation)
 {
-	for(std::map<int, int>::const_iterator i = other_evaluation.behavior.begin(); i != other_evaluation.behavior.end(); i++)
+	for(std::map<int, int>::const_iterator i = other_evaluation.evaluation.begin(); i != other_evaluation.evaluation.end(); i++)
 	{
-		int my_behavior;
-		if(behavior.find(i->first) == behavior.end())
-			my_behavior = 0;
-		else my_behavior = behavior[i->first];
+		int my_evaluation;
+		if(evaluation.find(i->first) == evaluation.end())
+			my_evaluation = 0;
+		else my_evaluation = evaluation[i->first];
 
-		int other_behavior = i->second;
+		int other_evaluation = i->second;
 		
-		int new_behavior = adapt(my_behavior, exchangeBehaviorAdaption, other_behavior);
+		int new_evaluation = evaluationOfExchange(my_evaluation, other_evaluation);
 
-		if(new_behavior != my_behavior)
-			behavior[i->first] = new_behavior;
+		if(new_evaluation != my_evaluation)
+			evaluation[i->first] = new_evaluation;
 	}
 }
+
+int Evaluation::EVALUATION_SIZE = 0;
+int Evaluation::STATUS_SIZE = 0;
+int Evaluation::ACTION_SIZE = 0;

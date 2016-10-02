@@ -17,7 +17,7 @@ class Person
 		void reset();
 
 		void meet(Person& other_person);
-		void generateChild(Person* partner, Person* child);
+		void generateChild(Person* child);
 		void mutate();
 		
 		int getId() const;
@@ -25,19 +25,17 @@ class Person
 		static int EXCHANGE_ENERGY_COST;
 		static int POISONOUS_FOOD_ENERGY_COST;
 		static int GOOD_FOOD_ENERGY_GAIN;
-
-		static int generateParent(int selection_size);
 		
 		Evaluation* getFoodEvaluation();
 		Evaluation* getPersonEvaluation();
 
-//		int* getBehavior() const;
+		int* getBehavior() const;
 		
 	private:
 		void consumeFood(const Food& food);
 
-		int evaluateFood(const Food& food) const;
-		int evaluatePerson(const Person& person) const;
+		bool evaluateFood(const Food& food) const;
+		bool evaluatePerson(const Person& person) const;
 		
 		int getStatus() const;
 		
@@ -51,6 +49,8 @@ class Person
 		
 		static int cooperate;
 		static int globalId;
+
+//		static void generate(Person* parent, Person* child);
 };
 
 #endif

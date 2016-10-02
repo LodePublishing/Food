@@ -26,14 +26,14 @@ int Person::getStatus() const
 	else return 0;
 }
 
-int Person::evaluateFood(const Food& food) const
+bool Person::evaluateFood(const Food& food) const
 {
-	return foodEvaluation.getBehavior(food.getId());
+	return foodEvaluation.getBehavior(food.getId(), getStatus());
 }
 
-int Person::evaluatePerson(const Person& person) const
+bool Person::evaluatePerson(const Person& person) const
 {
-	return personEvaluation.getBehavior(person.getId());
+	return personEvaluation.getBehavior(person.getId(), getStatus());
 }
 
 void Person::consumeFood(const Food& food)
@@ -42,61 +42,44 @@ void Person::consumeFood(const Food& food)
 	if(food.isPoisonous())
 	{
 		energy -= POISONOUS_FOOD_ENERGY_COST;
-		foodEvaluation.updateEvaluation(food.getId(), -100);
+		foodEvaluation.updateEvaluation(food.getId(), false);
 	}
 	else 
 	{
 		energy += GOOD_FOOD_ENERGY_GAIN;
-		foodEvaluation.updateEvaluation(food.getId(), 100);
+		foodEvaluation.updateEvaluation(food.getId(), true);
 	}	
 }
 
-int Person::generateParent(int selection_size)
-{
-	int t = ((rand()%selection_size) + (rand()%selection_size));
-	if(t < selection_size)
-		t = selection_size - t;
-	else t -= selection_size;
-	return t;
-}
-
-
-
-
 void Person::processFood(const Food& food)
 {
-	if((rand()%200) - 100 >= evaluateFood(food))
+	if(evaluateFood(food))
 		consumeFood(food);
 }
 
 void Person::meet(Person& other_person)
 {
-	bool my_action = ((rand()%200) - 100 >= evaluatePerson(other_person));
-	bool other_action = ((rand()%200) - 100 >= other_person.evaluatePerson(*this));	
-	int w1 = 0;
-	int w2 = 0;
-	
+	bool my_action = evaluatePerson(other_person);
+	bool other_action = other_person.evaluatePerson(*this);
 
 // exchange evaluations
 	if(my_action)
 	{
-		w2 = 100;
 //		energy -= EXCHANGE_ENERGY_COST;
 		other_person.personEvaluation.exchangeEvaluation(personEvaluation);
 		other_person.foodEvaluation.exchangeEvaluation(foodEvaluation);
-	} else w2 = -100;
+	}
 	
 	if(other_action)
 	{
-		w1 = 100;
 //		other_person.energy -= EXCHANGE_ENERGY_COST;
 		personEvaluation.exchangeEvaluation(other_person.personEvaluation);
 		foodEvaluation.exchangeEvaluation(other_person.foodEvaluation);		
-	} else w1 = -100;
+	}
 
 // update evaluation of person we have just met
-	personEvaluation.updateEvaluation(other_person.getId(), w1);
-	other_person.personEvaluation.updateEvaluation(getId(), w2);	
+	personEvaluation.updateEvaluation(other_person.getId(), other_action);
+	other_person.personEvaluation.updateEvaluation(getId(), my_action);	
 
 }
 
@@ -108,10 +91,10 @@ void Person::reset()
 	energy = 0;
 }
 
-void Person::generateChild(Person* partner, Person* child)
+void Person::generateChild(Person* child)
 {
-	foodEvaluation.generateChild(partner->getFoodEvaluation(), child->getFoodEvaluation());
-	personEvaluation.generateChild(partner->getPersonEvaluation(), child->getPersonEvaluation());
+	foodEvaluation.generateChild(child->getFoodEvaluation());
+	personEvaluation.generateChild(child->getPersonEvaluation());
 }
 
 void Person::mutate()
@@ -125,10 +108,10 @@ Evaluation* Person::getFoodEvaluation()
 	return &foodEvaluation;
 }
 
-/*int Person::getBehavior(int id) const
+int* Person::getBehavior() const
 {
-	return personEvaluation.getBehavior[0];
-}*/
+	return &personEvaluation.behavior[0];
+}
 
 Evaluation* Person::getPersonEvaluation()
 {
